@@ -346,13 +346,14 @@ button.link {
   text-decoration: underline;
 }
 
-/* Key size follows the panel width (container query units), capped at 60px. */
+/* Key width follows the panel width (container query units); keys are wider than tall. */
 .keyboard-panel {
   container-type: inline-size;
 }
 
 .keyboard {
-  --u: min(60px, 100cqi / 12.4);
+  --u: min(68px, 100cqi / 12.4);
+  --h: max(26px, var(--u) * 0.62);
   --g: calc(var(--u) * 0.1);
   width: fit-content;
   margin-inline: auto;
@@ -381,12 +382,12 @@ button.link {
 .key {
   flex: 0 0 auto;
   width: var(--u);
-  height: var(--u);
+  height: var(--h);
   display: grid;
   place-items: center;
-  border-radius: calc(var(--u) * 0.15);
+  border-radius: calc(var(--h) * 0.2);
   font-family: ui-monospace, monospace;
-  font-size: max(0.7rem, calc(var(--u) * 0.3));
+  font-size: max(0.7rem, calc(var(--h) * 0.4));
   background: color-mix(in srgb, var(--miss) calc(var(--heat) * 85%), var(--key-bg));
   color: var(--text);
 }

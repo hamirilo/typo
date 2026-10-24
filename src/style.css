@@ -346,49 +346,54 @@ button.link {
   text-decoration: underline;
 }
 
+/* Key size follows the panel width (container query units), capped at 60px. */
+.keyboard-panel {
+  container-type: inline-size;
+}
+
 .keyboard {
+  --u: min(60px, 100cqi / 12.4);
+  --g: calc(var(--u) * 0.1);
   width: fit-content;
-  max-width: 100%;
   margin-inline: auto;
   display: flex;
   flex-direction: column;
-  gap: 5px;
-  overflow-x: auto;
+  gap: var(--g);
 }
 
 .keyboard .row {
   display: flex;
-  gap: 5px;
+  gap: var(--g);
 }
 
 .keyboard .r1 {
-  padding-left: 18px;
+  padding-left: calc(var(--u) * 0.5);
 }
 
 .keyboard .r2 {
-  padding-left: 30px;
+  padding-left: calc(var(--u) * 0.75);
 }
 
 .keyboard .r3 {
-  padding-left: 48px;
+  padding-left: calc(var(--u) * 1.25);
 }
 
 .key {
   flex: 0 0 auto;
-  width: 40px;
-  height: 40px;
+  width: var(--u);
+  height: var(--u);
   display: grid;
   place-items: center;
-  border-radius: 6px;
+  border-radius: calc(var(--u) * 0.15);
   font-family: ui-monospace, monospace;
-  font-size: 0.85rem;
+  font-size: max(0.7rem, calc(var(--u) * 0.3));
   background: color-mix(in srgb, var(--miss) calc(var(--heat) * 85%), var(--key-bg));
   color: var(--text);
 }
 
 .key.space {
-  width: 240px;
-  margin-left: 130px;
+  width: calc(var(--u) * 6);
+  margin-left: calc(var(--u) * 3);
 }
 
 .records {
@@ -413,25 +418,4 @@ button.link {
 
 .records small {
   color: var(--muted);
-}
-
-@media (max-width: 560px) {
-  .key {
-    width: 28px;
-    height: 32px;
-    font-size: 0.75rem;
-  }
-  .keyboard .r1 {
-    padding-left: 10px;
-  }
-  .keyboard .r2 {
-    padding-left: 18px;
-  }
-  .keyboard .r3 {
-    padding-left: 28px;
-  }
-  .key.space {
-    width: 160px;
-    margin-left: 70px;
-  }
 }

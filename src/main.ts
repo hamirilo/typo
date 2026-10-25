@@ -151,6 +151,13 @@ function renderControls() {
   for (const btn of $('duration').querySelectorAll('button')) {
     btn.setAttribute('aria-pressed', String(Number(btn.dataset.value) === settings.duration))
   }
+  for (const btn of $('toggles').querySelectorAll('button')) {
+    const key = btn.dataset.toggle as 'showRomaji' | 'showKeyboard'
+    btn.setAttribute('aria-pressed', String(settings[key]))
+  }
+  // English prompts are the romaji line itself, so the toggle only applies to Japanese.
+  $('toggles').querySelector<HTMLElement>('[data-toggle="showRomaji"]')!.hidden = settings.lang !== 'ja'
+  $('keyboard-panel').hidden = !settings.showKeyboard
 }
 
 function renderPrompt() {
@@ -163,6 +170,7 @@ function renderPrompt() {
     $('reading').innerHTML =
       `<span class="typed">${escapeHtml(doneKana)}</span>` + escapeHtml(prompt.reading.slice(doneKana.length))
   }
+  $('romaji').hidden = ja && !settings.showRomaji
   const rest = matcher.remaining()
   $('romaji').innerHTML =
     `<span class="typed">${escapeHtml(matcher.typed)}</span>` +
@@ -261,6 +269,17 @@ function bindSegment(id: string, apply: (value: string) => void) {
 
 bindSegment('lang', (v) => (settings.lang = v as 'ja' | 'en'))
 bindSegment('duration', (v) => (settings.duration = Number(v)))
+$('toggles').addEventListener('click', (e) => {
+  const btn = (e.target as HTMLElement).closest('button')
+  if (!btn) return
+  btn.blur()
+  const key = btn.dataset.toggle as 'showRomaji' | 'showKeyboard'
+  settings[key] = !settings[key]
+  saveSettings(settings)
+  // No reset: toggling mid-run only changes what is shown.
+  renderControls()
+  renderPrompt()
+})
 $('retry').addEventListener('click', (e) => {
   ;(e.currentTarget as HTMLElement).blur()
   reset()

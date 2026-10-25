@@ -20,6 +20,10 @@
             <button data-value="60">60s</button>
             <button data-value="120">120s</button>
           </div>
+          <div class="seg" id="toggles" role="group" aria-label="表示">
+            <button data-toggle="showRomaji" title="ローマ字の表示を切り替え">ローマ字</button>
+            <button data-toggle="showKeyboard" title="苦手キーのキーボードの表示を切り替え">キーボード</button>
+          </div>
         </div>
       </header>
 
@@ -58,7 +62,7 @@
           <button class="primary" id="retry">もう一度 <kbd>Esc</kbd></button>
         </section>
 
-        <section class="panel keyboard-panel">
+        <section class="panel keyboard-panel" id="keyboard-panel">
           <div class="panel-head">
             <h2>苦手キー</h2>
             <button class="link" id="clear-keys">リセット</button>

@@ -74,10 +74,13 @@ export function clearKeyStats() {
 export interface Settings {
   lang: Language
   duration: number
+  /** Japanese mode: show the romaji guide under the kana. */
+  showRomaji: boolean
+  showKeyboard: boolean
 }
 
 export function loadSettings(): Settings {
-  return { lang: 'ja', duration: 60, ...read<Partial<Settings>>(SETTINGS_KEY, {}) }
+  return { lang: 'ja', duration: 60, showRomaji: true, showKeyboard: true, ...read<Partial<Settings>>(SETTINGS_KEY, {}) }
 }
 
 export function saveSettings(settings: Settings) {

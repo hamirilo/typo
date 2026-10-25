@@ -12,11 +12,13 @@ import {
   type KeyStats,
   type Result,
 } from './storage'
-import { nextPrompt, type Prompt } from './texts'
+import { nextPrompt, type Mode, type Prompt } from './texts'
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T
 
 const DURATIONS = [15, 30, 60, 120]
+/** How many upcoming prompts to preview in each mode. */
+const PREVIEW: Record<Mode, number> = { sentence: 1, word: 3 }
 const KEY_ROWS = ['1234567890-', 'qwertyuiop', 'asdfghjkl;', "zxcvbnm,./"]
 
 type Phase = 'ready' | 'running' | 'finished'
@@ -24,7 +26,7 @@ type Phase = 'ready' | 'running' | 'finished'
 const settings = loadSettings()
 let phase: Phase = 'ready'
 let prompt: Prompt
-let upcoming: Prompt
+let upcoming: Prompt[] = []
 let matcher: Matcher
 let startedAt = 0
 let correct = 0
@@ -42,8 +44,11 @@ function reset() {
   correct = 0
   miss = 0
   sessionKeys = {}
-  prompt = nextPrompt(settings.lang)
-  upcoming = nextPrompt(settings.lang, prompt)
+  prompt = nextPrompt(settings.lang, settings.mode)
+  upcoming = []
+  while (upcoming.length < PREVIEW[settings.mode]) {
+    upcoming.push(nextPrompt(settings.lang, settings.mode, upcoming.at(-1) ?? prompt))
+  }
   matcher = makeMatcher(prompt)
   $('game').hidden = false
   $('result').hidden = true
@@ -83,6 +88,7 @@ function finish() {
   const s = stats()
   const result: Result = {
     lang: settings.lang,
+    mode: settings.mode,
     duration: settings.duration,
     ...s,
     correct,
@@ -130,8 +136,8 @@ function onKey(e: KeyboardEvent) {
     flashMiss()
   }
   if (matcher.done) {
-    prompt = upcoming
-    upcoming = nextPrompt(settings.lang, prompt)
+    prompt = upcoming.shift()!
+    upcoming.push(nextPrompt(settings.lang, settings.mode, upcoming.at(-1) ?? prompt))
     matcher = makeMatcher(prompt)
   }
   renderPrompt()
@@ -147,6 +153,9 @@ function escapeHtml(s: string): string {
 function renderControls() {
   for (const btn of $('lang').querySelectorAll('button')) {
     btn.setAttribute('aria-pressed', String(btn.dataset.value === settings.lang))
+  }
+  for (const btn of $('mode').querySelectorAll('button')) {
+    btn.setAttribute('aria-pressed', String(btn.dataset.value === settings.mode))
   }
   for (const btn of $('duration').querySelectorAll('button')) {
     btn.setAttribute('aria-pressed', String(Number(btn.dataset.value) === settings.duration))
@@ -176,7 +185,17 @@ function renderPrompt() {
     `<span class="typed">${escapeHtml(matcher.typed)}</span>` +
     `<span class="cursor">${escapeHtml(rest[0] ?? '')}</span>` +
     escapeHtml(rest.slice(1))
-  $('next').textContent = upcoming.display
+  const next = $('next')
+  next.classList.toggle('words', settings.mode === 'word')
+  if (settings.mode === 'word') {
+    next.innerHTML =
+      '<span class="label">次</span>' +
+      upcoming
+        .map((p) => `<span class="word">${escapeHtml(p.display)}${ja ? `<small>${escapeHtml(p.reading)}</small>` : ''}</span>`)
+        .join('')
+  } else {
+    next.textContent = upcoming[0].display
+  }
 }
 
 function renderLive() {
@@ -227,12 +246,17 @@ function renderKeyboard() {
 
 function renderRecords() {
   const head = `<tr><th></th>${DURATIONS.map((d) => `<th>${d}s</th>`).join('')}</tr>`
-  const row = (lang: 'ja' | 'en', label: string) =>
+  const row = (lang: 'ja' | 'en', mode: Mode, label: string) =>
     `<tr><th>${label}</th>${DURATIONS.map((d) => {
-      const best = bestFor(lang, d)
+      const best = bestFor(lang, mode, d)
       return `<td>${best ? `${best.wpm}<small> WPM</small>` : '—'}</td>`
     }).join('')}</tr>`
-  $('records').innerHTML = head + row('ja', '日本語') + row('en', 'English')
+  $('records').innerHTML =
+    head +
+    row('ja', 'sentence', '日本語・文章') +
+    row('ja', 'word', '日本語・単語') +
+    row('en', 'sentence', 'English・文章') +
+    row('en', 'word', 'English・単語')
 }
 
 let imeTimeout: number | undefined
@@ -268,6 +292,7 @@ function bindSegment(id: string, apply: (value: string) => void) {
 }
 
 bindSegment('lang', (v) => (settings.lang = v as 'ja' | 'en'))
+bindSegment('mode', (v) => (settings.mode = v as Mode))
 bindSegment('duration', (v) => (settings.duration = Number(v)))
 $('toggles').addEventListener('click', (e) => {
   const btn = (e.target as HTMLElement).closest('button')

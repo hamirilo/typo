@@ -1,7 +1,9 @@
-import type { Language } from './texts'
+import type { Language, Mode } from './texts'
 
 export interface Result {
   lang: Language
+  /** Missing on results saved before word mode existed. */
+  mode?: Mode
   duration: number
   wpm: number
   kpm: number
@@ -40,15 +42,15 @@ export function loadResults(): Result[] {
   return read<Result[]>(RESULTS_KEY, [])
 }
 
-export function bestFor(lang: Language, duration: number): Result | undefined {
+export function bestFor(lang: Language, mode: Mode, duration: number): Result | undefined {
   return loadResults()
-    .filter((r) => r.lang === lang && r.duration === duration)
+    .filter((r) => r.lang === lang && (r.mode ?? 'sentence') === mode && r.duration === duration)
     .sort((a, b) => b.wpm - a.wpm)[0]
 }
 
 /** Saves the result and returns the previous best for the same mode. */
 export function saveResult(result: Result): Result | undefined {
-  const previousBest = bestFor(result.lang, result.duration)
+  const previousBest = bestFor(result.lang, result.mode ?? 'sentence', result.duration)
   write(RESULTS_KEY, [result, ...loadResults()].slice(0, MAX_RESULTS))
   return previousBest
 }
@@ -73,6 +75,7 @@ export function clearKeyStats() {
 
 export interface Settings {
   lang: Language
+  mode: Mode
   duration: number
   /** Japanese mode: show the romaji guide under the kana. */
   showRomaji: boolean
@@ -80,7 +83,7 @@ export interface Settings {
 }
 
 export function loadSettings(): Settings {
-  return { lang: 'ja', duration: 60, showRomaji: true, showKeyboard: true, ...read<Partial<Settings>>(SETTINGS_KEY, {}) }
+  return { lang: 'ja', mode: 'sentence', duration: 60, showRomaji: true, showKeyboard: true, ...read<Partial<Settings>>(SETTINGS_KEY, {}) }
 }
 
 export function saveSettings(settings: Settings) {

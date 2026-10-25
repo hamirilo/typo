@@ -92,12 +92,25 @@ describe('prompt order', () => {
     for (let round = 0; round < 3; round++) {
       const seen = new Set()
       for (let i = 0; i < JAPANESE.length; i++) {
-        const p = nextPrompt('ja', previous)
+        const p = nextPrompt('ja', 'sentence', previous)
         expect(p).not.toBe(previous)
         seen.add(p)
         previous = p
       }
       expect(seen.size).toBe(JAPANESE.length)
+    }
+  })
+})
+
+describe('Japanese words', () => {
+  it('every word reading converts to known romaji and is unique', async () => {
+    const { JAPANESE_WORDS } = await import('./texts')
+    expect(JAPANESE_WORDS.length).toBeGreaterThanOrEqual(200)
+    expect(new Set(JAPANESE_WORDS.map((w) => w.reading)).size).toBe(JAPANESE_WORDS.length)
+    for (const w of JAPANESE_WORDS) {
+      for (const chunk of toChunks(w.reading)) {
+        expect(chunk.text, `${w.reading}: unknown kana`).not.toBe(chunk.candidates[0])
+      }
     }
   })
 })

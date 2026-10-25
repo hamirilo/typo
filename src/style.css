@@ -219,6 +219,39 @@ kbd {
   text-overflow: ellipsis;
 }
 
+.next.words {
+  display: flex;
+  justify-content: center;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  white-space: normal;
+  color: var(--muted);
+  font-size: 1.1rem;
+}
+
+.next.words .label {
+  font-size: 0.8rem;
+  color: var(--faint);
+}
+
+.next.words .word {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1.3;
+}
+
+/* The word right after the current one stands out; later ones fade. */
+.next.words .word:nth-of-type(n + 3) {
+  color: var(--faint);
+}
+
+.next.words small {
+  font-size: 0.7rem;
+  color: var(--faint);
+}
+
 .hint {
   text-align: center;
   color: var(--muted);

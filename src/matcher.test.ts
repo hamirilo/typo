@@ -82,3 +82,22 @@ describe('Japanese prompts', () => {
     }
   })
 })
+
+describe('prompt order', () => {
+  it('does not repeat a Japanese prompt until all have been shown', async () => {
+    const { JAPANESE, nextPrompt } = await import('./texts')
+    expect(JAPANESE.length).toBeGreaterThanOrEqual(150)
+    expect(new Set(JAPANESE.map((p) => p.reading)).size).toBe(JAPANESE.length)
+    let previous
+    for (let round = 0; round < 3; round++) {
+      const seen = new Set()
+      for (let i = 0; i < JAPANESE.length; i++) {
+        const p = nextPrompt('ja', previous)
+        expect(p).not.toBe(previous)
+        seen.add(p)
+        previous = p
+      }
+      expect(seen.size).toBe(JAPANESE.length)
+    }
+  })
+})
